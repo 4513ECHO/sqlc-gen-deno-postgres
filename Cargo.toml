@@ -1,0 +1,16 @@
+[package]
+name = "sqlc-gen-deno-postgres"
+version = "0.1.0-1"
+authors = ["Hibiki <mail@4513echo.dev>"]
+edition = "2021"
+
+[profile.release]
+lto = true
+opt-level = "z"
+
+[dependencies]
+bytes = "1.5.0"
+prost = "0.12.0"
+
+[build-dependencies]
+prost-build = "0.12.0"

@@ -1,0 +1,12 @@
+{
+  "version": "2",
+  "plugins": [
+    {
+      "name": "deno-postgres",
+      "wasm": {
+        "sha256": "$SHA256",
+        "url": "$URL"
+      }
+    }
+  ]
+}
