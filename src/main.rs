@@ -1,5 +1,7 @@
 use cruet::Inflector;
+use enquote::unquote;
 use prost::Message;
+use std::collections::HashMap;
 use std::io;
 use std::io::{Cursor, Read, Write};
 use std::process::abort;
@@ -24,9 +26,6 @@ fn serialize_codegen_response(resp: &plugin::CodeGenResponse) -> Vec<u8> {
     resp.encode(&mut buf).unwrap_or_else(|_| abort());
     buf
 }
-
-const IMPORT_STATEMENT: &str =
-    r#"import { Client } from "https://deno.land/x/postgres@v0.17.0/mod.ts";"#;
 
 fn create_querier(query: plugin::Query) -> String {
     let mut querier = String::new();
@@ -115,9 +114,32 @@ fn to_ts_type(column: &plugin::Column) -> String {
         + if column.not_null { "" } else { " | null" }
 }
 
+fn parse_plugin_options(options: &Vec<u8>) -> HashMap<String, String> {
+    let binding = String::from_utf8(options.to_owned()).unwrap_or_else(|_| abort());
+    let options = unquote(&binding)
+        .unwrap_or_else(|_| abort())
+        .split(',')
+        .map(|s| {
+            let [key, value] = s.split('=').collect::<Vec<_>>()[..] else {
+                abort()
+            };
+            (key.to_string(), unquote(value).unwrap_or_else(|_| abort()))
+        })
+        .collect::<HashMap<_, _>>();
+    options
+}
+
 fn create_codegen_response(req: plugin::CodeGenRequest) -> plugin::CodeGenResponse {
-    let contents = IMPORT_STATEMENT.to_string()
-        + "\n\n"
+    let options = parse_plugin_options(&req.plugin_options);
+
+    let import_statement = "import { Client } from \"".to_string()
+        + match options.get("import_url") {
+            Some(import_url) => import_url,
+            None => "https://deno.land/x/postgres@v0.17.0/mod.ts",
+        }
+        + "\";\n\n";
+
+    let contents = import_statement
         + req
             .queries
             .into_iter()
