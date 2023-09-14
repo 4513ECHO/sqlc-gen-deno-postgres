@@ -2,6 +2,7 @@
 name = "sqlc-gen-deno-postgres"
 version = "0.1.0-1"
 authors = ["Hibiki <mail@4513echo.dev>"]
+description = "sqlc plugin for deno-postgres"
 edition = "2021"
 
 [profile.release]
