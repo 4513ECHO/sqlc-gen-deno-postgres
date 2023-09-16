@@ -25,8 +25,12 @@ jobs:
           [[ $GITHUB_REF =~ -[0-9]+$ ]] && prerelease=true || prerelease=false
           sha="$(jq -r '.plugins[0].wasm.sha256' < sqlc.json)"
           {
-            printf 'version=%s\nprerelease=%s\nsha=%s\nsqlc_json=' "$version" "$prerelease" "$sha"
+            echo "version=$version"
+            echo "prerelease=$prerelease"
+            echo "sha=$sha"
+            echo 'sqlc_json<<__EOF__'
             cat sqlc.json
+            echo '__EOF__'
           } >> "$GITHUB_OUTPUT"
       - uses: softprops/action-gh-release@v1
         if: ${{ github.event_name != 'workflow_dispatch' }}
