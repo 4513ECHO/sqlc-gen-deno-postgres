@@ -10,6 +10,8 @@ jobs:
         with:
           targets: wasm32-wasi
       - uses: Swatinem/rust-cache@v2
+      - name: install protoc
+        run: apt-get install --no-install-recommends -y protobuf-compiler
       - name: build
         run: make RELEASE=1
       - uses: actions/upload-artifact@v3
