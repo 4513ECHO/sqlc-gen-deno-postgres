@@ -341,7 +341,7 @@ dependencies = [
 
 [[package]]
 name = "sqlc-gen-deno-postgres"
-version = "0.1.0-3"
+version = "0.1.0-4"
 dependencies = [
  "bytes",
  "cruet",
