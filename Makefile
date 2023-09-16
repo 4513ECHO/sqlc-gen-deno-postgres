@@ -1,6 +1,6 @@
 ROOT_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 WASM_FILE := target/wasm32-wasi/$(if $(RELEASE),release,debug)/sqlc-gen-deno-postgres.wasm
-VERSION := $(shell git describe --tags --abbrev=0)
+VERSION := v$(shell cargo read-manifest | jq -r .version)
 RELEASE_URL := https://github.com/4513ECHO/sqlc-gen-deno-postgres/releases/download/$(VERSION)/sqlc-gen-deno-postgres.wasm
 USE_GITHUB_RELEASE ?=
 

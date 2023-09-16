@@ -1,5 +1,9 @@
 name: Release
 on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-[0-9]+'
   workflow_dispatch:
 jobs:
   release:
@@ -10,11 +14,36 @@ jobs:
         with:
           targets: wasm32-wasi
       - uses: Swatinem/rust-cache@v2
-      - name: install protoc
+      - name: Install protoc
         run: sudo apt-get install --no-install-recommends -y protobuf-compiler
-      - name: build
-        run: make RELEASE=1
+      - name: Build
+        run: make sqlc.json RELEASE=1 USE_GITHUB_RELEASE=1
+      - name: Collect build infomation
+        id: info
+        run: |
+          version="v$(cargo read-manifest | jq -r .version)"
+          [[ $GITHUB_REF =~ -[0-9]+$ ]] && prerelease=true || prerelease=false
+          sha="$(jq -r '.plugins[0].wasm.sha256' < sqlc.json)"
+          {
+            printf 'version=%s\nprerelease=%s\nsha=%s\nsqlc_json=' "$version" "$prerelease" "$sha"
+            cat sqlc.json
+          } >> "$GITHUB_OUTPUT"
+      - uses: softprops/action-gh-release@v1
+        if: ${{ github.event_name != 'workflow_dispatch' }}
+        with:
+          body: |
+            ```json
+            ${{ steps.info.outputs.sqlc_json }}
+            ```
+
+            ```
+            ${{ steps.info.outputs.sha }}
+            ```
+          prerelease: ${{ steps.info.outputs.prerelease == 'true' }}
+          files: target/wasm32-wasi/release/sqlc-gen-deno-postgres.wasm
+          tag_name: ${{ steps.info.outputs.version }}
       - uses: actions/upload-artifact@v3
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         with:
           name: sqlc-gen-deno-postgres.wasm
           path: target/wasm32-wasi/release/sqlc-gen-deno-postgres.wasm
