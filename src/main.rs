@@ -1,6 +1,6 @@
 use cruet::Inflector;
 use enquote::unquote;
-use indoc::{formatdoc, indoc};
+use indoc::formatdoc;
 use prost::Message;
 use std::collections::HashMap;
 use std::io;
@@ -79,11 +79,7 @@ fn create_querier(query: plugin::Query) -> String {
         querier,
         "export async function ",
         query.name.to_camel_case(),
-        indoc!(
-            "
-            (
-              client: Client"
-        )
+        "(\n  client: Client"
     );
     if !query.params.is_empty() {
         concat_string!(querier, ",\n  params: ", query.name, "Params");
@@ -97,21 +93,16 @@ fn create_querier(query: plugin::Query) -> String {
             ":many" => query.name.clone() + "Row[]",
             _ => abort(),
         },
-        indoc!(
-            "
-            > {
-              const { rows } = await client.queryObject({
-                args: [], // TODO
-                camelcase: true,
-                text: "
-        ),
+        "> {\n  const { rows } = await client.queryObject({\n"
+    );
+    if !query.params.is_empty() {
+        concat_string!(querier, "    args: [", build_params(&query.params), "],\n");
+    }
+    concat_string!(
+        querier,
+        "    camelcase: true,\n    text: ",
         query.name.to_camel_case(),
-        indoc!(
-            "
-            Query,
-              });
-              return "
-        ),
+        "Query,\n  });\n  return ",
         match query.cmd.as_str() {
             ":exec" => "",
             ":one" => "rows[0] ?? null",
@@ -122,6 +113,19 @@ fn create_querier(query: plugin::Query) -> String {
     );
 
     querier
+}
+
+fn build_params(params: &[plugin::Parameter]) -> String {
+    params
+        .iter()
+        .map(|param| {
+            let column = param.column.as_ref().unwrap_or_else(|| abort());
+            "params.".to_string()
+                + column.name.to_camel_case().as_str()
+                + if column.is_sqlc_slice { "[0]" } else { "" }
+        })
+        .collect::<Vec<_>>()
+        .join(", ")
 }
 
 fn to_ts_type(column: &plugin::Column) -> String {
