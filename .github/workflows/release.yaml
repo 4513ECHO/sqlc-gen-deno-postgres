@@ -23,6 +23,8 @@ jobs:
           restore-keys: |
             aqua-installer-
       - uses: aquaproj/aqua-installer@v2.1.2
+        env:
+          AQUA_LOG_COLOR: always
         with:
           aqua_version: v2.12.0
           aqua_opts: ""
@@ -42,8 +44,13 @@ jobs:
             cat sqlc.json
             echo '__EOF__'
           } >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v3
+        if: github.event_name == 'workflow_dispatch'
+        with:
+          name: sqlc-gen-deno-postgres.wasm
+          path: target/wasm32-wasi/release/sqlc-gen-deno-postgres.wasm
       - uses: softprops/action-gh-release@v1
-        if: github.event_name != 'workflow_dispatch'
+        if: github.event_name == 'push'
         with:
           body: |
             ```json
@@ -56,8 +63,3 @@ jobs:
           prerelease: ${{ fromJson(steps.info.outputs.prerelease) }}
           files: target/wasm32-wasi/release/sqlc-gen-deno-postgres.wasm
           tag_name: ${{ steps.info.outputs.version }}
-      - uses: actions/upload-artifact@v3
-        if: github.event_name == 'workflow_dispatch'
-        with:
-          name: sqlc-gen-deno-postgres.wasm
-          path: target/wasm32-wasi/release/sqlc-gen-deno-postgres.wasm
