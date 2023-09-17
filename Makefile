@@ -3,6 +3,7 @@ WASM_FILE := target/wasm32-wasi/$(if $(RELEASE),release,debug)/sqlc-gen-deno-pos
 VERSION := v$(shell cargo read-manifest | jq -r .version)
 RELEASE_URL := https://github.com/4513ECHO/sqlc-gen-deno-postgres/releases/download/$(VERSION)/sqlc-gen-deno-postgres.wasm
 USE_GITHUB_RELEASE ?=
+USE_WASM_OPT ?=
 
 .DEFAULT_GOAL := $(WASM_FILE)
 
@@ -12,7 +13,10 @@ ifeq ($(RELEASE),)
 else
 	RUSTFLAGS="-Zlocation-detail=none" cargo +nightly build --release --target wasm32-wasi
 endif
-	@du -h $(WASM_FILE)
+ifneq ($(USE_WASM_OPT),)
+	wasm-opt -Oz -o $@ $@
+endif
+	@du -h $@
 
 src/codegen.proto:
 	curl -o $@ -L https://github.com/sqlc-dev/sqlc/raw/v1.21.0/protos/plugin/codegen.proto
