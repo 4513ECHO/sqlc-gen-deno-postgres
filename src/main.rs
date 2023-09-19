@@ -1,4 +1,4 @@
-use cruet::Inflector;
+use case::CaseExt;
 use enquote::unquote;
 use indoc::formatdoc;
 use prost::Message;
@@ -34,7 +34,7 @@ fn create_querier(query: plugin::Query) -> String {
     concat_string!(
         querier,
         "const ",
-        query.name.to_camel_case(),
+        query.name.to_camel_lowercase(),
         "Query = `",
         query.text,
         "`;\n\n"
@@ -50,7 +50,11 @@ fn create_querier(query: plugin::Query) -> String {
                 .params
                 .iter()
                 .flat_map(|param| &param.column)
-                .map(|column| format!("  {}: {};", column.name.to_camel_case(), to_ts_type(column)))
+                .map(|column| format!(
+                    "  {}: {};",
+                    column.name.to_camel_lowercase(),
+                    to_ts_type(column)
+                ))
                 .collect::<Vec<_>>()
                 .join("\n")
                 .as_str(),
@@ -67,7 +71,11 @@ fn create_querier(query: plugin::Query) -> String {
             query
                 .columns
                 .iter()
-                .map(|column| format!("  {}: {};", column.name.to_camel_case(), to_ts_type(column)))
+                .map(|column| format!(
+                    "  {}: {};",
+                    column.name.to_camel_lowercase(),
+                    to_ts_type(column)
+                ))
                 .collect::<Vec<_>>()
                 .join("\n")
                 .as_str(),
@@ -78,7 +86,7 @@ fn create_querier(query: plugin::Query) -> String {
     concat_string!(
         querier,
         "export async function ",
-        query.name.to_camel_case(),
+        query.name.to_camel_lowercase(),
         "(\n  client: Client"
     );
     if !query.params.is_empty() {
@@ -101,7 +109,7 @@ fn create_querier(query: plugin::Query) -> String {
     concat_string!(
         querier,
         "    camelcase: true,\n    text: ",
-        query.name.to_camel_case(),
+        query.name.to_camel_lowercase(),
         "Query,\n  });\n  return ",
         match query.cmd.as_str() {
             ":exec" => "",
@@ -121,7 +129,7 @@ fn build_params(params: &[plugin::Parameter]) -> String {
         .map(|param| {
             let column = param.column.as_ref().unwrap_or_else(|| abort());
             "params.".to_string()
-                + column.name.to_camel_case().as_str()
+                + column.name.to_camel_lowercase().as_str()
                 + if column.is_sqlc_slice { "[0]" } else { "" }
         })
         .collect::<Vec<_>>()

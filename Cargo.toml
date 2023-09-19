@@ -14,7 +14,7 @@ build-override.opt-level = 3
 
 [dependencies]
 bytes = "1.5.0"
-cruet = "0.13.3"
+case = "1.0.0"
 enquote = "1.1.0"
 indoc = "2.0.3"
 prost = "0.12.0"
