@@ -2,8 +2,7 @@ name: Release
 on:
   push:
     tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
-      - "v[0-9]+.[0-9]+.[0-9]+-[0-9]+"
+      - "*"
   workflow_dispatch:
 permissions:
   contents: write
@@ -29,13 +28,14 @@ jobs:
           aqua_version: v2.12.1
           aqua_opts: ""
       - name: Build
-        run: make sqlc.json RELEASE=1 USE_GITHUB_RELEASE=1 USE_WASM_OPT=1
+        run: make sqlc.json RELEASE=1 USE_WASM_OPT=1
       - name: Collect build infomation
         id: info
         run: |
           version="v$(cargo read-manifest | jq -r .version)"
+          [[ '${{ github.event_name }}' == push ]] && [[ ${GITHUB_REF##refs/tags} != "$version" ]] && exit 1
           [[ $GITHUB_REF =~ -[0-9]+$ ]] && prerelease=true || prerelease=false
-          sha="$(jq -r '.plugins[0].wasm.sha256' < sqlc.json)"
+          sha="$(cat target/wasm32-wasi/release/sqlc-gen-deno-postgres.wasm.sha256)"
           {
             printf 'version=%s\nprerelease=%s\nsha=%s\n' "$version" "$prerelease" "$sha"
             echo 'sqlc_json<<__EOF__'
@@ -46,7 +46,9 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         with:
           name: sqlc-gen-deno-postgres.wasm
-          path: target/wasm32-wasi/release/sqlc-gen-deno-postgres.wasm
+          path: |
+            target/wasm32-wasi/release/sqlc-gen-deno-postgres.wasm
+            target/wasm32-wasi/release/sqlc-gen-deno-postgres.wasm.sha256
       - uses: softprops/action-gh-release@v1
         if: github.event_name == 'push'
         with:
@@ -59,5 +61,7 @@ jobs:
             ${{ steps.info.outputs.sha }}
             ```
           prerelease: ${{ fromJson(steps.info.outputs.prerelease) }}
-          files: target/wasm32-wasi/release/sqlc-gen-deno-postgres.wasm
+          files: |
+            target/wasm32-wasi/release/sqlc-gen-deno-postgres.wasm
+            target/wasm32-wasi/release/sqlc-gen-deno-postgres.wasm.sha256
           tag_name: ${{ steps.info.outputs.version }}

@@ -1,28 +1,37 @@
 ROOT_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-WASM_FILE := target/wasm32-wasi/$(if $(RELEASE),release,debug)/sqlc-gen-deno-postgres.wasm
-VERSION := v$(shell cargo read-manifest | jq -r .version)
-RELEASE_URL := https://github.com/4513ECHO/sqlc-gen-deno-postgres/releases/download/$(VERSION)/sqlc-gen-deno-postgres.wasm
-USE_GITHUB_RELEASE ?=
-USE_WASM_OPT ?=
+CARGO ?= cargo +nightly
+CARGO_EXTRA_FLAGS ?=
+
+filter-false = $(strip $(filter-out 0 off OFF false FALSE False,$1))
+
+RELEASE ?= false
+USE_WASM_OPT ?= false
 SQLC_VERSION ?= v1.22.0
+
+WASM_FILE := target/wasm32-wasi/$(if $(call filter-false,$(RELEASE)),release,debug)/sqlc-gen-deno-postgres.wasm
+VERSION := v$(shell cargo read-manifest | jq -r .version)
+RELEASE_URL := $(basename $(shell git remote get-url origin))/releases/download/$(VERSION)/$(notdir $(WASM_FILE))
 
 .DEFAULT_GOAL := $(WASM_FILE)
 
 $(WASM_FILE): build.rs src/codegen.proto src/main.rs
-ifeq ($(RELEASE),)
-	cargo +nightly build --target wasm32-wasi
+ifeq ($(call filter-false,$(RELEASE)),)
+	$(CARGO) build --target wasm32-wasi $(CARGO_EXTRA_FLAGS)
 else
-	RUSTFLAGS="-Zlocation-detail=none" cargo +nightly build --release --target wasm32-wasi
+	RUSTFLAGS="-Zlocation-detail=none" $(CARGO) build --release --target wasm32-wasi $(CARGO_EXTRA_FLAGS)
+ifneq ($(call filter-false,$(USE_WASM_OPT)),)
+	wasm-opt -Oz --output $@ $@
 endif
-ifneq ($(USE_WASM_OPT),)
-	wasm-opt -Oz -o $@ $@
 endif
 	@du -h $@
+
+$(WASM_FILE).sha256: $(WASM_FILE)
+	sha256sum $< | awk '{print $$1}' > $@
 
 src/codegen.proto:
 	curl -o $@ -L https://github.com/sqlc-dev/sqlc/raw/$(SQLC_VERSION)/protos/plugin/codegen.proto
 
-sqlc.json: $(WASM_FILE) _sqlc.json
-	SHA256=$(shell sha256sum $< | awk '{print $$1}') \
-	URL=$(if $(USE_GITHUB_RELEASE),"$(RELEASE_URL)","file://$(ROOT_DIR)$<") \
+sqlc.json: $(WASM_FILE).sha256 _sqlc.json
+	SHA256=$(shell cat $<) \
+	URL=$(if $(GITHUB_ACTIONS),"$(RELEASE_URL)","file://$(ROOT_DIR)$(WASM_FILE)") \
 		envsubst > $@ < _sqlc.json
