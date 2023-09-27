@@ -4,6 +4,7 @@ VERSION := v$(shell cargo read-manifest | jq -r .version)
 RELEASE_URL := https://github.com/4513ECHO/sqlc-gen-deno-postgres/releases/download/$(VERSION)/sqlc-gen-deno-postgres.wasm
 USE_GITHUB_RELEASE ?=
 USE_WASM_OPT ?=
+SQLC_VERSION ?= v1.22.0
 
 .DEFAULT_GOAL := $(WASM_FILE)
 
@@ -19,7 +20,7 @@ endif
 	@du -h $@
 
 src/codegen.proto:
-	curl -o $@ -L https://github.com/sqlc-dev/sqlc/raw/v1.21.0/protos/plugin/codegen.proto
+	curl -o $@ -L https://github.com/sqlc-dev/sqlc/raw/$(SQLC_VERSION)/protos/plugin/codegen.proto
 
 sqlc.json: $(WASM_FILE) _sqlc.json
 	SHA256=$(shell sha256sum $< | awk '{print $$1}') \
