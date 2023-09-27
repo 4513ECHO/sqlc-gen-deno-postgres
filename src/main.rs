@@ -101,7 +101,13 @@ fn create_querier(query: plugin::Query) -> String {
             ":many" => query.name.clone() + "Row[]",
             _ => abort(),
         },
-        "> {\n  const { rows } = await client.queryObject({\n"
+        "> {\n  const { rows } = await client.queryObject<",
+        match query.cmd.as_str() {
+            ":exec" => "unknown".to_string(),
+            ":one" | ":many" => query.name.clone() + "Row",
+            _ => abort(),
+        },
+        ">({\n"
     );
     if !query.params.is_empty() {
         concat_string!(querier, "    args: [", build_params(&query.params), "],\n");
@@ -175,8 +181,8 @@ fn to_ts_type(column: &plugin::Column) -> String {
         + if column.not_null { "" } else { " | null" }
 }
 
-fn parse_plugin_options(options: &Vec<u8>) -> HashMap<String, String> {
-    let binding = String::from_utf8(options.to_owned()).unwrap_or_else(|_| abort());
+fn parse_plugin_options(options: &[u8]) -> HashMap<String, String> {
+    let binding = String::from_utf8(options.to_vec()).unwrap_or_else(|_| abort());
     unquote(&binding)
         .unwrap_or_else(|_| abort())
         .split(',')
@@ -198,7 +204,6 @@ fn create_codegen_response(req: plugin::CodeGenRequest) -> plugin::CodeGenRespon
         // versions:
         //   sqlc {}
         //   sqlc-gen-deno-postgres v{}
-
         ",
         req.sqlc_version,
         env!("CARGO_PKG_VERSION"),
