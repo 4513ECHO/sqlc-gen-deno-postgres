@@ -8,7 +8,6 @@ rust-version = "1.74.0"
 readme = "README.md"
 repository = "https://github.com/4513ECHO/sqlc-gen-deno-postgres"
 license = "MIT"
-license-file = "LICENSE"
 
 [profile.release]
 codegen-units = 1
