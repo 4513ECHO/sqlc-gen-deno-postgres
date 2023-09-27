@@ -33,7 +33,6 @@ jobs:
         id: info
         run: |
           version="v$(cargo read-manifest | jq -r .version)"
-          [[ '${{ github.event_name }}' == push ]] && [[ ${GITHUB_REF##refs/tags} != "$version" ]] && exit 1
           [[ $GITHUB_REF =~ -[0-9]+$ ]] && prerelease=true || prerelease=false
           sha="$(cat target/wasm32-wasi/release/sqlc-gen-deno-postgres.wasm.sha256)"
           {
@@ -41,7 +40,7 @@ jobs:
             echo 'sqlc_json<<__EOF__'
             cat sqlc.json
             echo '__EOF__'
-          } >> "$GITHUB_OUTPUT"
+          } | tee -a "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v3
         if: github.event_name == 'workflow_dispatch'
         with:

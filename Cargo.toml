@@ -1,9 +1,14 @@
 [package]
 name = "sqlc-gen-deno-postgres"
-version = "0.1.0-7"
+version = "0.1.0-8"
 authors = ["Hibiki <mail@4513echo.dev>"]
 description = "sqlc plugin for deno-postgres"
 edition = "2021"
+rust-version = "1.74.0"
+readme = "README.md"
+repository = "https://github.com/4513ECHO/sqlc-gen-deno-postgres"
+license = "MIT"
+license-file = "LICENSE"
 
 [profile.release]
 codegen-units = 1

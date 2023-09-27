@@ -92,6 +92,7 @@ fn create_querier(query: plugin::Query) -> String {
     if !query.params.is_empty() {
         concat_string!(querier, ",\n  params: ", query.name, "Params");
     }
+    // TODO: Use promise chain
     concat_string!(
         querier,
         ",\n): Promise<",

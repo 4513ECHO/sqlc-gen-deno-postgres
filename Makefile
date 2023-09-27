@@ -9,8 +9,8 @@ USE_WASM_OPT ?= false
 SQLC_VERSION ?= v1.22.0
 
 WASM_FILE := target/wasm32-wasi/$(if $(call filter-false,$(RELEASE)),release,debug)/sqlc-gen-deno-postgres.wasm
-VERSION := v$(shell cargo read-manifest | jq -r .version)
-RELEASE_URL := $(basename $(shell git remote get-url origin))/releases/download/$(VERSION)/$(notdir $(WASM_FILE))
+VERSION := v$(shell $(CARGO) read-manifest | jq -r .version)
+RELEASE_URL := $(shell $(CARGO) read-manifest | jq -r .repository)/releases/download/$(VERSION)/$(notdir $(WASM_FILE))
 
 .DEFAULT_GOAL := $(WASM_FILE)
 
