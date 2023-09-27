@@ -45,7 +45,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         if: github.event_name == 'workflow_dispatch'
         with:
-          name: sqlc-gen-deno-postgres.wasm
+          name: sqlc-gen-deno-postgres
           path: |
             target/wasm32-wasi/release/sqlc-gen-deno-postgres.wasm
             target/wasm32-wasi/release/sqlc-gen-deno-postgres.wasm.sha256
