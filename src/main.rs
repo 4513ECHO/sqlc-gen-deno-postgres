@@ -17,11 +17,11 @@ macro_rules! concat_string {
     };
 }
 
-fn deserialize_codegen_request(buf: &[u8]) -> plugin::CodeGenRequest {
-    plugin::CodeGenRequest::decode(&mut Cursor::new(buf)).unwrap_or_else(|_| abort())
+fn deserialize_codegen_request(buf: &[u8]) -> plugin::GenerateRequest {
+    plugin::GenerateRequest::decode(&mut Cursor::new(buf)).unwrap_or_else(|_| abort())
 }
 
-fn serialize_codegen_response(resp: &plugin::CodeGenResponse) -> Vec<u8> {
+fn serialize_codegen_response(resp: &plugin::GenerateResponse) -> Vec<u8> {
     let mut buf = Vec::with_capacity(resp.encoded_len());
 
     resp.encode(&mut buf).unwrap_or_else(|_| abort());
@@ -196,7 +196,7 @@ fn parse_plugin_options(options: &[u8]) -> HashMap<String, String> {
         .collect::<HashMap<_, _>>()
 }
 
-fn create_codegen_response(req: plugin::CodeGenRequest) -> plugin::CodeGenResponse {
+fn create_codegen_response(req: plugin::GenerateRequest) -> plugin::GenerateResponse {
     let options = parse_plugin_options(&req.plugin_options);
 
     let mut contents = formatdoc!(
@@ -230,7 +230,7 @@ fn create_codegen_response(req: plugin::CodeGenRequest) -> plugin::CodeGenRespon
         contents: contents.as_bytes().to_vec(),
     };
 
-    plugin::CodeGenResponse { files: vec![file] }
+    plugin::GenerateResponse { files: vec![file] }
 }
 
 fn main() {

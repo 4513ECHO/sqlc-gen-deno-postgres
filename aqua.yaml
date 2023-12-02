@@ -8,9 +8,9 @@
 #     - all
 registries:
   - type: standard
-    ref: v4.53.0 # renovate: depName=aquaproj/aqua-registry
+    ref: v4.94.0 # renovate: depName=aquaproj/aqua-registry
 packages:
   - name: jqlang/jq@jq-1.7
-  - name: protocolbuffers/protobuf/protoc@v24.3
-  - name: sqlc-dev/sqlc@v1.22.0
+  - name: protocolbuffers/protobuf/protoc@v25.1
+  - name: sqlc-dev/sqlc@v1.24.0
   - name: WebAssembly/binaryen@version_116

@@ -4,7 +4,7 @@ version = "0.1.0-8"
 authors = ["Hibiki <mail@4513echo.dev>"]
 description = "sqlc plugin for deno-postgres"
 edition = "2021"
-rust-version = "1.74.0"
+rust-version = "1.75.0"
 readme = "README.md"
 repository = "https://github.com/4513ECHO/sqlc-gen-deno-postgres"
 license = "MIT"
@@ -21,7 +21,7 @@ bytes = "1.5.0"
 case = "1.0.0"
 enquote = "1.1.0"
 indoc = "2.0.4"
-prost = "0.12.1"
+prost = "0.12.3"
 
 [build-dependencies]
-prost-build = "0.12.1"
+prost-build = "0.12.3"

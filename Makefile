@@ -6,7 +6,7 @@ filter-false = $(strip $(filter-out 0 off OFF false FALSE False,$1))
 
 RELEASE ?= false
 USE_WASM_OPT ?= false
-SQLC_VERSION ?= v1.22.0
+SQLC_VERSION ?= $(shell sqlc version)
 
 WASM_FILE := target/wasm32-wasi/$(if $(call filter-false,$(RELEASE)),release,debug)/sqlc-gen-deno-postgres.wasm
 VERSION := v$(shell $(CARGO) read-manifest | jq -r .version)
@@ -23,7 +23,7 @@ ifneq ($(call filter-false,$(USE_WASM_OPT)),)
 	wasm-opt -Oz --output $@ $@
 endif
 endif
-	@du -h $@
+	+@du -h $@
 
 $(WASM_FILE).sha256: $(WASM_FILE)
 	sha256sum $< | awk '{print $$1}' > $@
